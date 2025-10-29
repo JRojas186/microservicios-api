@@ -1,6 +1,22 @@
 # Tutorial 00: Corrección de Migraciones de Tablas Pivote
 
-## El Problema
+## Problema Encontrado
+
+Durante la implementación de los seeders, se detectó un error de referencia en las migraciones de tablas pivote relacionadas con la tabla `medias`.
+
+### Error Original
+
+```
+SQLSTATE[HY000]: General error: 1 no such table: media
+```
+
+Este error ocurría al ejecutar:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+## Causa del Problema
 
 Laravel tiene una convención para los nombres de tablas:
 
@@ -172,7 +188,39 @@ class Media extends Model
 
 Sin embargo, esta solución no resuelve el problema en las migraciones porque las migraciones se ejecutan antes de que los modelos estén disponibles.
 
-## Buenas Prácticas
+## Verificación de la Corrección
+
+Después de aplicar los cambios:
+
+```bash
+# Refrescar migraciones
+php artisan migrate:fresh
+
+# Poblar datos
+php artisan db:seed
+
+# Verificar relaciones
+php artisan db:stats
+```
+
+**Resultado esperado:**
+
+```
++-------------+-------+
+| Model       | Count |
++-------------+-------+
+| Users       | 11    |
+| Roles       | 2     |
+| Channels    | 13    |
+| Medias      | 12    |  ← Tabla "medias" funciona correctamente
+| Posts       | 11    |
+| Attachments | 20    |
++-------------+-------+
+```
+
+## Lección Aprendida
+
+**Buena práctica:**
 
 Siempre especificar explícitamente el nombre de la tabla en `constrained()` cuando:
 
@@ -189,3 +237,27 @@ $table->foreignId('media_id')->constrained('medias')->onDelete('cascade');
 // ⚠️ Implícito, puede fallar, menos claro
 $table->foreignId('media_id')->constrained()->onDelete('cascade');
 ```
+
+## Archivos Modificados
+
+1. `database/migrations/2025_10_15_223506_create_post_medias_table.php`
+2. `database/migrations/2025_10_15_223708_create_channel_medias_table.php`
+
+**Cambio específico en ambos:**
+
+```diff
+- $table->foreignId('media_id')->constrained()->onDelete('cascade');
++ $table->foreignId('media_id')->constrained('medias')->onDelete('cascade');
+```
+
+## Resumen
+
+Este tutorial explica un error común en Laravel:
+
+1. **Problema:** Las migraciones buscaban la tabla "media" (singular) en lugar de "medias" (plural)
+2. **Causa:** El método `constrained()` sin parámetros infiere el nombre de forma incorrecta
+3. **Solución:** Especificar explícitamente `constrained('medias')`
+4. **Lección:** Siempre ser explícito con los nombres de tablas en claves foráneas
+5. **Impacto:** Corrige errores de migración y permite que los seeders funcionen correctamente
+
+Esta corrección fue fundamental para que todo el sistema de seeders pudiera ejecutarse sin errores.

@@ -95,14 +95,6 @@ Un Attachment representa un archivo adjunto a un post:
 
 ### Paso 1: Estructura de la clase
 
-Con el comando Artisan:
-
-```bash
-php artisan make:seeder AttachmentSeeder
-```
-
-Lo que genera:
-
 ```php
 <?php
 
@@ -180,7 +172,7 @@ Los posts de video requieren 3 attachments:
 
 1. Video principal (MP4)
 2. Thumbnail (imagen)
-3. Subtítulos (SRT)
+3. Subtítulos (VTT)
 
 ```php
 $attachments = [
@@ -196,8 +188,8 @@ $attachments = [
     ],
     [
         'post_id' => $post->id,
-        'mime_type' => 'text/srt',
-        'path' => 'storage/posts/' . $post->id . '/videos/subtitles_es.srt',
+        'mime_type' => 'text/vtt',
+        'path' => 'storage/posts/' . $post->id . '/videos/subtitles_es.vtt',
     ],
 ];
 ```
